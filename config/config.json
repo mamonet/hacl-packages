@@ -581,6 +581,9 @@
         ],
         "rsapss": [
             "rsapss.cc"
+        ],
+        "aesgcm": [
+            "aesgcm.cc"
         ]
     }
 }
