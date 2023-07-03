@@ -13,6 +13,7 @@
 #include "Hacl_AES_128_GCM_NI.h"
 #endif
 #include "Hacl_AES_128_GCM_M32.h"
+#include "EverCrypt_AEAD.h"
 
 const int INPUT_LEN = 1000;
 
@@ -21,6 +22,7 @@ static bytes key(16, 7);
 static bytes aad(77, 9);
 static bytes nonce(12, 9);
 static bytes ciphertext(INPUT_LEN + 16, 0);
+static bytes mac(16, 0);
 
 static bytes expected_ciphertext = {
   0xa1, 0xad, 0x69, 0x52, 0x5a, 0xd6, 0xcf, 0xa8, 0x09, 0x62, 0x5b, 0x03, 0xca,
@@ -113,11 +115,11 @@ HACL_AES_128_GCM_NI_encrypt(benchmark::State& state)
     Hacl_AES_128_GCM_NI_aes128_gcm_init(ctx, key.data());
     Hacl_AES_128_GCM_NI_aes128_gcm_compute_iv(ctx, nonce.size(), nonce.data());
     Hacl_AES_128_GCM_NI_aes128_gcm_encrypt(ctx, INPUT_LEN, ciphertext.data(), plaintext.data(), aad.size(), aad.data());
+    KRML_HOST_FREE(ctx);
     if (ciphertext != expected_ciphertext) {
       state.SkipWithError("Wrong ciphertext");
       break;
     }
-    KRML_HOST_FREE(ctx);
   }
 }
 
@@ -132,15 +134,48 @@ HACL_AES_128_GCM_M32_encrypt(benchmark::State& state)
     Hacl_AES_128_GCM_M32_aes128_gcm_init(ctx, key.data());
     Hacl_AES_128_GCM_M32_aes128_gcm_compute_iv(ctx, nonce.size(), nonce.data());
     Hacl_AES_128_GCM_M32_aes128_gcm_encrypt(ctx, INPUT_LEN, ciphertext.data(), plaintext.data(), aad.size(), aad.data());
+    KRML_HOST_FREE(ctx);
     if (ciphertext != expected_ciphertext) {
       state.SkipWithError("Wrong ciphertext");
       break;
     }
-    KRML_HOST_FREE(ctx);
   }
 }
 
 BENCHMARK(HACL_AES_128_GCM_M32_encrypt)->Setup(DoSetup);
+
+static void
+EverCrypt_AES128_GCM_encrypt(benchmark::State& state)
+{
+  for (auto _ : state) {
+    EverCrypt_AEAD_state_s* ctx;
+    EverCrypt_Error_error_code res = EverCrypt_AEAD_create_in(
+      Spec_Agile_AEAD_AES128_GCM, &ctx, key.data());
+
+    if (res != EverCrypt_Error_Success) {
+      state.SkipWithError("Could not allocate AEAD state.");
+      break;
+    }
+
+    EverCrypt_AEAD_encrypt(ctx,
+                           nonce.data(),
+                           nonce.size(),
+                           aad.data(),
+                           aad.size(),
+                           plaintext.data(),
+                           INPUT_LEN,
+                           ciphertext.data(),
+                           mac.data());
+
+    EverCrypt_AEAD_free(ctx);
+  }
+
+  if (ciphertext != expected_ciphertext) {
+    state.SkipWithError("Wrong ciphertext");
+  }
+}
+
+BENCHMARK(EverCrypt_AES128_GCM_encrypt)->Setup(DoSetup);
 
 #ifndef NO_OPENSSL
 static void
