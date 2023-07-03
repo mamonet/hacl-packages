@@ -26,7 +26,9 @@
 #include "EverCrypt_AEAD.h"
 
 #include "internal/Vale.h"
+#ifdef HACL_CAN_COMPILE_AESNI_PCLMUL
 #include "Hacl_AES_128_GCM_NI.h"
+#endif
 #include "Hacl_AES_128_GCM_M32.h"
 #include "internal/Hacl_Spec.h"
 #include "config.h"
@@ -1406,7 +1408,7 @@ decrypt_aes128_gcm_aesni_pclmul(
   uint8_t *dst
 )
 {
-  #if HACL_CAN_COMPILE_VALE
+  #if HACL_CAN_COMPILE_AESNI_PCLMUL
   if (s == NULL)
   {
     return EverCrypt_Error_InvalidKey;
