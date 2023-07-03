@@ -206,8 +206,6 @@ if(TOOLCHAIN_CAN_COMPILE_VEC128)
                     -msse3
                     -msse4.1
                     -msse4.2
-                    -maes
-                    -mpclmul
                 )
             endif(MSVC)
         elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|arm64v8")
