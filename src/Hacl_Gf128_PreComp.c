@@ -25,7 +25,131 @@
 
 #include "Hacl_Gf128_PreComp.h"
 
-#include "internal/Hacl_Gf128_NI.h"
+void Hacl_Impl_Gf128_FieldPreComp_fmul(uint64_t *x, uint64_t *y)
+{
+  uint64_t res[2U] = { 0U };
+  uint64_t y_[2U] = { 0U };
+  y_[0U] = y[0U];
+  y_[1U] = y[1U];
+  for (uint32_t i = (uint32_t)0U; i < (uint32_t)64U; i++)
+  {
+    uint64_t m = (uint64_t)0U - (x[1U] >> ((uint32_t)63U - i) & (uint64_t)1U);
+    res[0U] = res[0U] ^ (y_[0U] & m);
+    res[1U] = res[1U] ^ (y_[1U] & m);
+    uint64_t m0 = (uint64_t)0U - (y_[0U] & (uint64_t)1U);
+    y_[0U] = y_[0U] >> (uint32_t)1U | y_[1U] << (uint32_t)63U;
+    y_[1U] = y_[1U] >> (uint32_t)1U ^ ((uint64_t)0xE100000000000000U & m0);
+  }
+  for (uint32_t i = (uint32_t)0U; i < (uint32_t)64U; i++)
+  {
+    uint64_t m = (uint64_t)0U - (x[0U] >> ((uint32_t)63U - i) & (uint64_t)1U);
+    res[0U] = res[0U] ^ (y_[0U] & m);
+    res[1U] = res[1U] ^ (y_[1U] & m);
+    uint64_t m0 = (uint64_t)0U - (y_[0U] & (uint64_t)1U);
+    y_[0U] = y_[0U] >> (uint32_t)1U | y_[1U] << (uint32_t)63U;
+    y_[1U] = y_[1U] >> (uint32_t)1U ^ ((uint64_t)0xE100000000000000U & m0);
+  }
+  x[0U] = res[0U];
+  x[1U] = res[1U];
+}
+
+static inline void prepare(uint64_t *pre, uint64_t *r)
+{
+  memset(pre, 0U, (uint32_t)256U * sizeof (uint64_t));
+  uint64_t sh[2U] = { 0U };
+  sh[0U] = r[0U];
+  sh[1U] = r[1U];
+  uint64_t *pre1 = pre;
+  uint64_t *pre2 = pre + (uint32_t)128U;
+  for (uint32_t i = (uint32_t)0U; i < (uint32_t)64U; i++)
+  {
+    memcpy(pre1 + (uint32_t)2U * i, sh, (uint32_t)2U * sizeof (uint64_t));
+    uint64_t m = (uint64_t)0U - (sh[0U] & (uint64_t)1U);
+    sh[0U] = sh[0U] >> (uint32_t)1U | sh[1U] << (uint32_t)63U;
+    sh[1U] = sh[1U] >> (uint32_t)1U ^ ((uint64_t)0xE100000000000000U & m);
+  }
+  for (uint32_t i = (uint32_t)0U; i < (uint32_t)64U; i++)
+  {
+    memcpy(pre2 + (uint32_t)2U * i, sh, (uint32_t)2U * sizeof (uint64_t));
+    uint64_t m = (uint64_t)0U - (sh[0U] & (uint64_t)1U);
+    sh[0U] = sh[0U] >> (uint32_t)1U | sh[1U] << (uint32_t)63U;
+    sh[1U] = sh[1U] >> (uint32_t)1U ^ ((uint64_t)0xE100000000000000U & m);
+  }
+}
+
+void Hacl_Impl_Gf128_FieldPreComp_load_precompute_r(uint64_t *pre, uint8_t *key)
+{
+  uint64_t *r4321 = pre;
+  uint64_t *r1 = r4321 + (uint32_t)6U;
+  uint64_t *r2 = r4321 + (uint32_t)4U;
+  uint64_t *r3 = r4321 + (uint32_t)2U;
+  uint64_t *r4 = r4321;
+  uint64_t *table2 = pre + (uint32_t)8U;
+  uint64_t u = load64_be(key);
+  r1[1U] = u;
+  uint64_t u0 = load64_be(key + (uint32_t)8U);
+  r1[0U] = u0;
+  r4[0U] = r1[0U];
+  r4[1U] = r1[1U];
+  r3[0U] = r1[0U];
+  r3[1U] = r1[1U];
+  r2[0U] = r1[0U];
+  r2[1U] = r1[1U];
+  Hacl_Impl_Gf128_FieldPreComp_fmul(r2, r1);
+  Hacl_Impl_Gf128_FieldPreComp_fmul(r3, r2);
+  Hacl_Impl_Gf128_FieldPreComp_fmul(r4, r3);
+  prepare(table2, r4);
+}
+
+static inline void fmul_pre(uint64_t *x, uint64_t *pre)
+{
+  uint64_t *tab = pre + (uint32_t)8U;
+  uint64_t tmp[2U] = { 0U };
+  for (uint32_t i = (uint32_t)0U; i < (uint32_t)64U; i++)
+  {
+    uint64_t *uu____0 = tab + (uint32_t)2U * i;
+    uint64_t m = (uint64_t)0U - (x[1U] >> ((uint32_t)63U - i) & (uint64_t)1U);
+    tmp[0U] = tmp[0U] ^ (uu____0[0U] & m);
+    tmp[1U] = tmp[1U] ^ (uu____0[1U] & m);
+  }
+  for (uint32_t i = (uint32_t)0U; i < (uint32_t)64U; i++)
+  {
+    uint64_t *uu____1 = tab + (uint32_t)128U + (uint32_t)2U * i;
+    uint64_t m = (uint64_t)0U - (x[0U] >> ((uint32_t)63U - i) & (uint64_t)1U);
+    tmp[0U] = tmp[0U] ^ (uu____1[0U] & m);
+    tmp[1U] = tmp[1U] ^ (uu____1[1U] & m);
+  }
+  x[0U] = tmp[0U];
+  x[1U] = tmp[1U];
+}
+
+void Hacl_Impl_Gf128_FieldPreComp_fmul_r4(uint64_t *x, uint64_t *pre)
+{
+  fmul_pre(x, pre);
+  fmul_pre(x + (uint32_t)2U, pre);
+  fmul_pre(x + (uint32_t)4U, pre);
+  fmul_pre(x + (uint32_t)6U, pre);
+}
+
+void Hacl_Impl_Gf128_FieldPreComp_normalize4(uint64_t *acc, uint64_t *x, uint64_t *pre)
+{
+  uint64_t *x1 = x;
+  uint64_t *x2 = x + (uint32_t)2U;
+  uint64_t *x3 = x + (uint32_t)4U;
+  uint64_t *x4 = x + (uint32_t)6U;
+  fmul_pre(x, pre);
+  Hacl_Impl_Gf128_FieldPreComp_fmul(x + (uint32_t)2U, pre + (uint32_t)2U);
+  Hacl_Impl_Gf128_FieldPreComp_fmul(x + (uint32_t)4U, pre + (uint32_t)4U);
+  Hacl_Impl_Gf128_FieldPreComp_fmul(x + (uint32_t)6U, pre + (uint32_t)6U);
+  acc[0U] = x1[0U];
+  acc[1U] = x1[1U];
+  acc[0U] = acc[0U] ^ x2[0U];
+  acc[1U] = acc[1U] ^ x2[1U];
+  acc[0U] = acc[0U] ^ x3[0U];
+  acc[1U] = acc[1U] ^ x3[1U];
+  acc[0U] = acc[0U] ^ x4[0U];
+  acc[1U] = acc[1U] ^ x4[1U];
+}
 
 void Hacl_Gf128_PreComp_gcm_init(uint64_t *ctx, uint8_t *key)
 {

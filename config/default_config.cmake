@@ -53,6 +53,10 @@ set(SOURCES_std
 	${PROJECT_SOURCE_DIR}/src/EverCrypt_Chacha20Poly1305.c
 	${PROJECT_SOURCE_DIR}/src/EverCrypt_Poly1305.c
 	${PROJECT_SOURCE_DIR}/src/EverCrypt_AEAD.c
+	${PROJECT_SOURCE_DIR}/src/Hacl_Lib.c
+	${PROJECT_SOURCE_DIR}/src/Hacl_Gf128_PreComp.c
+	${PROJECT_SOURCE_DIR}/src/Hacl_AES_128_BitSlice.c
+	${PROJECT_SOURCE_DIR}/src/Hacl_AES_128_GCM_M32.c
 )
 set(SOURCES_vec256
 	${PROJECT_SOURCE_DIR}/src/Hacl_Hash_Blake2b_256.c
@@ -103,10 +107,6 @@ set(SOURCES_std_vale
 	${PROJECT_SOURCE_DIR}/src/Hacl_HPKE_Curve64_CP32_SHA512.c
 )
 set(SOURCES_aesni_pclmul
-	${PROJECT_SOURCE_DIR}/src/Hacl_Lib.c
-	${PROJECT_SOURCE_DIR}/src/Hacl_Gf128_PreComp.c
-	${PROJECT_SOURCE_DIR}/src/Hacl_AES_128_BitSlice.c
-	${PROJECT_SOURCE_DIR}/src/Hacl_AES_128_GCM_M32.c
 	${PROJECT_SOURCE_DIR}/src/Hacl_Gf128_NI.c
 	${PROJECT_SOURCE_DIR}/src/Hacl_AES_128_NI.c
 	${PROJECT_SOURCE_DIR}/src/Hacl_AES_128_GCM_NI.c

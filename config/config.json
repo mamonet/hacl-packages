@@ -22,19 +22,19 @@
         "aesgcm": [
             {
                 "file": "Hacl_Lib.c",
-                "features": "aesni_pclmul"
+                "features": "std"
             },
             {
                 "file": "Hacl_Gf128_PreComp.c",
-                "features": "aesni_pclmul"
+                "features": "std"
             },
             {
                 "file": "Hacl_AES_128_BitSlice.c",
-                "features": "aesni_pclmul"
+                "features": "std"
             },
             {
                 "file": "Hacl_AES_128_GCM_M32.c",
-                "features": "aesni_pclmul"
+                "features": "std"
             },
             {
                 "file": "Hacl_Gf128_NI.c",
