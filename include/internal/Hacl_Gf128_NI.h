@@ -23,8 +23,8 @@
  */
 
 
-#ifndef __internal_Hacl_Spec_H
-#define __internal_Hacl_Spec_H
+#ifndef __internal_Hacl_Gf128_NI_H
+#define __internal_Hacl_Gf128_NI_H
 
 #if defined(__cplusplus)
 extern "C" {
@@ -35,26 +35,20 @@ extern "C" {
 #include "krml/lowstar_endianness.h"
 #include "krml/internal/target.h"
 
-#include "../Hacl_Spec.h"
+#include "../Hacl_Gf128_NI.h"
+#include "libintvector.h"
 
-#define Spec_Cipher_Expansion_Hacl_CHACHA20 0
-#define Spec_Cipher_Expansion_Vale_AES128 1
-#define Spec_Cipher_Expansion_Vale_AES256 2
-#define Spec_Cipher_Expansion_AESNI_PCLMUL_AES128 3
-#define Spec_Cipher_Expansion_AESNI_PCLMUL_AES256 4
-#define Spec_Cipher_Expansion_M32_AES128 5
-#define Spec_Cipher_Expansion_M32_AES256 6
+void Hacl_Impl_Gf128_FieldPreComp_fmul(uint64_t *x, uint64_t *y);
 
-typedef uint8_t Spec_Cipher_Expansion_impl;
+void Hacl_Impl_Gf128_FieldPreComp_load_precompute_r(uint64_t *pre, uint8_t *key);
 
-#define Spec_Frodo_Params_SHAKE128 0
-#define Spec_Frodo_Params_AES128 1
+void Hacl_Impl_Gf128_FieldPreComp_fmul_r4(uint64_t *x, uint64_t *pre);
 
-typedef uint8_t Spec_Frodo_Params_frodo_gen_a;
+void Hacl_Impl_Gf128_FieldPreComp_normalize4(uint64_t *acc, uint64_t *x, uint64_t *pre);
 
 #if defined(__cplusplus)
 }
 #endif
 
-#define __internal_Hacl_Spec_H_DEFINED
+#define __internal_Hacl_Gf128_NI_H_DEFINED
 #endif

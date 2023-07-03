@@ -175,6 +175,7 @@ endif()
 # - SOURCES_std: All regular files
 # - SOURCES_vec128: Files that require vec128 hardware
 # - SOURCES_vec256: Files that require vec256 hardware
+# - SOURCES_aesni_pclmul: Files that require aes-ni/pclmul hardware
 
 # Remove files that require missing toolchain features
 # and enable the features for compilation that are available.
@@ -205,6 +206,8 @@ if(TOOLCHAIN_CAN_COMPILE_VEC128)
                     -msse3
                     -msse4.1
                     -msse4.2
+                    -maes
+                    -mpclmul
                 )
             endif(MSVC)
         elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|arm64v8")
@@ -284,6 +287,34 @@ if(TOOLCHAIN_CAN_COMPILE_VALE)
     set(HACL_CAN_COMPILE_VALE 1)
 endif()
 
+if(TOOLCHAIN_CAN_COMPILE_AESNI_PCLMUL)
+    add_compile_options(
+        -DHACL_CAN_COMPILE_VEC128
+        -DHACL_CAN_COMPILE_VEC256
+    )
+    set(HACL_CAN_COMPILE_AESNI_PCLMUL 1)
+
+    # # We make separate compilation units (objects) for each hardware feature
+    list(LENGTH SOURCES_aesni_pclmul SOURCES_AESNI_PCLMUL_LEN)
+
+    if(NOT SOURCES_AESNI_PCLMUL_LEN EQUAL 0)
+        set(HACL_AESNI_PCLMUL_O ON)
+        add_library(hacl_aesni_pclmul OBJECT ${SOURCES_aesni_pclmul})
+        target_include_directories(hacl_aesni_pclmul PRIVATE)
+        if(MSVC)
+        else()
+            target_compile_options(hacl_aesni_pclmul PRIVATE
+                -msse2
+                -msse3
+                -msse4.1
+                -msse4.2
+                -maes
+                -mpclmul
+            )
+        endif(MSVC)
+    endif()
+endif()
+
 if(TOOLCHAIN_CAN_COMPILE_INLINE_ASM)
     message(STATUS "Detected inline assembly support")
     set(HACL_CAN_COMPILE_INLINE_ASM 1)
@@ -348,6 +379,11 @@ if(TOOLCHAIN_CAN_COMPILE_VEC256 AND HACL_VEC256_O)
     target_link_libraries(hacl PRIVATE $<TARGET_OBJECTS:hacl_vec256>)
 endif()
 
+if(TOOLCHAIN_CAN_COMPILE_AESNI_PCLMUL AND HACL_AESNI_PCLMUL_O)
+    add_dependencies(hacl hacl_aesni_pclmul)
+    target_link_libraries(hacl PRIVATE $<TARGET_OBJECTS:hacl_aesni_pclmul>)
+endif()
+
 # # Static library
 add_library(hacl_static STATIC ${SOURCES_std} ${VALE_OBJECTS})
 
@@ -357,6 +393,10 @@ endif()
 
 if(TOOLCHAIN_CAN_COMPILE_VEC256 AND HACL_VEC256_O)
     target_sources(hacl_static PRIVATE $<TARGET_OBJECTS:hacl_vec256>)
+endif()
+
+if(TOOLCHAIN_CAN_COMPILE_AESNI_PCLMUL AND HACL_AESNI_PCLMUL_O)
+    target_sources(hacl_static PRIVATE $<TARGET_OBJECTS:hacl_aesni_pclmul>)
 endif()
 
 # Install

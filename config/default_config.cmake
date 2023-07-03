@@ -86,7 +86,6 @@ set(SOURCES_vec128
 	${PROJECT_SOURCE_DIR}/src/Hacl_HPKE_P256_CP128_SHA256.c
 )
 set(SOURCES_m32
-	
 )
 set(SOURCES_vale
 	${PROJECT_SOURCE_DIR}/src/Hacl_Curve25519_64.c
@@ -102,6 +101,15 @@ set(SOURCES_vec256_vale
 set(SOURCES_std_vale
 	${PROJECT_SOURCE_DIR}/src/Hacl_HPKE_Curve64_CP32_SHA256.c
 	${PROJECT_SOURCE_DIR}/src/Hacl_HPKE_Curve64_CP32_SHA512.c
+)
+set(SOURCES_aesni_pclmul
+	${PROJECT_SOURCE_DIR}/src/Hacl_Lib.c
+	${PROJECT_SOURCE_DIR}/src/Hacl_Gf128_PreComp.c
+	${PROJECT_SOURCE_DIR}/src/Hacl_AES_128_BitSlice.c
+	${PROJECT_SOURCE_DIR}/src/Hacl_AES_128_GCM_M32.c
+	${PROJECT_SOURCE_DIR}/src/Hacl_Gf128_NI.c
+	${PROJECT_SOURCE_DIR}/src/Hacl_AES_128_NI.c
+	${PROJECT_SOURCE_DIR}/src/Hacl_AES_128_GCM_NI.c
 )
 set(INCLUDES
 	${PROJECT_SOURCE_DIR}/include/Hacl_NaCl.h
@@ -247,6 +255,13 @@ set(INCLUDES
 	${PROJECT_SOURCE_DIR}/include/EverCrypt_Chacha20Poly1305.h
 	${PROJECT_SOURCE_DIR}/include/EverCrypt_Poly1305.h
 	${PROJECT_SOURCE_DIR}/include/EverCrypt_AEAD.h
+	${PROJECT_SOURCE_DIR}/include/Hacl_Lib.h
+	${PROJECT_SOURCE_DIR}/include/Hacl_Gf128_PreComp.h
+	${PROJECT_SOURCE_DIR}/include/Hacl_AES_128_BitSlice.h
+	${PROJECT_SOURCE_DIR}/include/Hacl_AES_128_GCM_M32.h
+	${PROJECT_SOURCE_DIR}/include/Hacl_Gf128_NI.h
+	${PROJECT_SOURCE_DIR}/include/Hacl_AES_128_NI.h
+	${PROJECT_SOURCE_DIR}/include/Hacl_AES_128_GCM_NI.h
 )
 set(PUBLIC_INCLUDES
 	${PROJECT_SOURCE_DIR}/include/Hacl_NaCl.h
@@ -361,6 +376,13 @@ set(PUBLIC_INCLUDES
 	${PROJECT_SOURCE_DIR}/include/EverCrypt_Chacha20Poly1305.h
 	${PROJECT_SOURCE_DIR}/include/EverCrypt_Poly1305.h
 	${PROJECT_SOURCE_DIR}/include/EverCrypt_AEAD.h
+	${PROJECT_SOURCE_DIR}/include/Hacl_Lib.h
+	${PROJECT_SOURCE_DIR}/include/Hacl_Gf128_PreComp.h
+	${PROJECT_SOURCE_DIR}/include/Hacl_AES_128_BitSlice.h
+	${PROJECT_SOURCE_DIR}/include/Hacl_AES_128_GCM_M32.h
+	${PROJECT_SOURCE_DIR}/include/Hacl_Gf128_NI.h
+	${PROJECT_SOURCE_DIR}/include/Hacl_AES_128_NI.h
+	${PROJECT_SOURCE_DIR}/include/Hacl_AES_128_GCM_NI.h
 )
 set(ALGORITHMS
 	nacl
