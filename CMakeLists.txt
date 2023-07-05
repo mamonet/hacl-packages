@@ -464,6 +464,11 @@ if(ENABLE_BENCHMARKS)
     target_include_directories(digestif PUBLIC ${PROJECT_SOURCE_DIR}/third-party/digestif)
 endif(ENABLE_BENCHMARKS)
 
+# Add bearssl for benchmarks
+if(ENABLE_BENCHMARKS)
+    include(${PROJECT_SOURCE_DIR}/third-party/bearssl/config.cmake)
+    add_library(bearssl OBJECT ${SOURCES_bearssl})
+endif(ENABLE_BENCHMARKS)
 
 # Testing
 # It's only one binary. Everything else is done with gtest arguments.
@@ -586,6 +591,7 @@ if(ENABLE_BENCHMARKS)
             ecckiila
             blake2
             digestif
+            bearssl
             hacl_cpu_features
             benchmark::benchmark
         )

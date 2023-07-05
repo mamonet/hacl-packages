@@ -14,6 +14,9 @@
 #endif
 #include "Hacl_AES_128_GCM_M32.h"
 #include "EverCrypt_AEAD.h"
+#include "../third-party/bearssl/bearssl_block.h"
+#include "../third-party/bearssl/bearssl_hash.h"
+#include "../third-party/bearssl/bearssl_aead.h"
 
 const int INPUT_LEN = 1000;
 
@@ -214,5 +217,30 @@ OpenSSL_aes_128_gcm_encrypt(benchmark::State& state)
 
 BENCHMARK(OpenSSL_aes_128_gcm_encrypt)->Setup(DoSetup);
 #endif
+
+static void
+BearSSL_CT64_AES128_GCM_encrypt(benchmark::State& state)
+{
+  for (auto _ : state) {
+    br_aes_ct64_ctr_keys bc;
+    br_gcm_context gc;
+    br_aes_ct64_ctr_init(&bc, key.data(), key.size());
+    br_gcm_init(&gc, &bc.vtable, br_ghash_ctmul64);
+
+    memcpy(ciphertext.data(), plaintext.data(), INPUT_LEN);
+    br_gcm_reset(&gc, nonce.data(), nonce.size());
+    br_gcm_aad_inject(&gc, aad.data(), aad.size());
+    br_gcm_flip(&gc);
+    br_gcm_run(&gc, 1, ciphertext.data(), INPUT_LEN);
+    br_gcm_get_tag(&gc, mac.data());
+    memcpy(ciphertext.data() + INPUT_LEN, mac.data(), 16);
+  }
+
+  if (ciphertext != expected_ciphertext) {
+    state.SkipWithError("Wrong ciphertext");
+  }
+}
+
+BENCHMARK(BearSSL_CT64_AES128_GCM_encrypt)->Setup(DoSetup);
 
 BENCHMARK_MAIN();
