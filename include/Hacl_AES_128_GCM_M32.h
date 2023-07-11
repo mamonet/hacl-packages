@@ -42,8 +42,6 @@ extern uint32_t Hacl_AES_128_GCM_M32_aes_gcm_ctx_len;
 
 typedef uint64_t *Hacl_AES_128_GCM_M32_aes_gcm_ctx;
 
-void Hacl_AES_128_GCM_M32_aes128_gcm_compute_iv(uint64_t *ctx, uint32_t iv_len, uint8_t *iv);
-
 void Hacl_AES_128_GCM_M32_aes128_gcm_init(uint64_t *ctx, uint8_t *key);
 
 void
@@ -53,7 +51,9 @@ Hacl_AES_128_GCM_M32_aes128_gcm_encrypt(
   uint8_t *out,
   uint8_t *text,
   uint32_t aad_len,
-  uint8_t *aad
+  uint8_t *aad,
+  uint32_t iv_len,
+  uint8_t *iv
 );
 
 bool
@@ -63,7 +63,9 @@ Hacl_AES_128_GCM_M32_aes128_gcm_decrypt(
   uint8_t *out,
   uint8_t *cipher,
   uint32_t aad_len,
-  uint8_t *aad
+  uint8_t *aad,
+  uint32_t iv_len,
+  uint8_t *iv
 );
 
 #if defined(__cplusplus)

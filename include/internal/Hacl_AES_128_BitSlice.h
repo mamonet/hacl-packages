@@ -62,7 +62,8 @@ Hacl_Impl_AES_Generic_aes128_ctr_bitslice(
   uint32_t len,
   uint8_t *out,
   uint8_t *inp,
-  uint64_t *ctx
+  uint64_t *ctx,
+  uint32_t counter
 );
 
 void
@@ -70,7 +71,8 @@ Hacl_Impl_AES_Generic_aes256_ctr_bitslice(
   uint32_t len,
   uint8_t *out,
   uint8_t *inp,
-  uint64_t *ctx
+  uint64_t *ctx,
+  uint32_t counter
 );
 
 #if defined(__cplusplus)

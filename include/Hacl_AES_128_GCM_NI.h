@@ -41,13 +41,6 @@ extern "C" {
 
 typedef Lib_IntVector_Intrinsics_vec128 *Hacl_AES_128_GCM_NI_aes_gcm_ctx;
 
-void
-Hacl_AES_128_GCM_NI_aes128_gcm_compute_iv(
-  Lib_IntVector_Intrinsics_vec128 *ctx,
-  uint32_t iv_len,
-  uint8_t *iv
-);
-
 void Hacl_AES_128_GCM_NI_aes128_gcm_init(Lib_IntVector_Intrinsics_vec128 *ctx, uint8_t *key);
 
 void
@@ -57,7 +50,9 @@ Hacl_AES_128_GCM_NI_aes128_gcm_encrypt(
   uint8_t *out,
   uint8_t *text,
   uint32_t aad_len,
-  uint8_t *aad
+  uint8_t *aad,
+  uint32_t iv_len,
+  uint8_t *iv
 );
 
 bool
@@ -67,7 +62,9 @@ Hacl_AES_128_GCM_NI_aes128_gcm_decrypt(
   uint8_t *out,
   uint8_t *cipher,
   uint32_t aad_len,
-  uint8_t *aad
+  uint8_t *aad,
+  uint32_t iv_len,
+  uint8_t *iv
 );
 
 #if defined(__cplusplus)

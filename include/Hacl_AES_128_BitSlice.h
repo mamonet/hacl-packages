@@ -43,7 +43,7 @@ void Hacl_AES_128_BitSlice_aes128_init(uint64_t *ctx, uint8_t *key, uint8_t *non
 
 void Hacl_AES_128_BitSlice_aes128_set_nonce(uint64_t *ctx, uint8_t *nonce);
 
-void Hacl_AES_128_BitSlice_aes128_key_block(uint8_t *kb, uint64_t *ctx);
+void Hacl_AES_128_BitSlice_aes128_key_block(uint8_t *kb, uint64_t *ctx, uint32_t counter);
 
 void
 Hacl_AES_128_BitSlice_aes128_ctr_encrypt(
@@ -51,7 +51,8 @@ Hacl_AES_128_BitSlice_aes128_ctr_encrypt(
   uint8_t *out,
   uint8_t *inp,
   uint8_t *k,
-  uint8_t *n
+  uint8_t *n,
+  uint32_t c
 );
 
 void
@@ -60,7 +61,8 @@ Hacl_AES_128_BitSlice_aes128_ctr_decrypt(
   uint8_t *out,
   uint8_t *inp,
   uint8_t *k,
-  uint8_t *n
+  uint8_t *n,
+  uint32_t c
 );
 
 #if defined(__cplusplus)

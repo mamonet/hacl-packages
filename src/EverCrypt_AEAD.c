@@ -363,8 +363,7 @@ encrypt_aes128_gcm_aesni_pclmul(
   uint8_t *ek = scrut.ek;
   Lib_IntVector_Intrinsics_vec128 *aes_gcm_ctx = (Lib_IntVector_Intrinsics_vec128 *)ek;
   uint8_t* out = (uint8_t*)KRML_HOST_MALLOC(plain_len + 16);
-  Hacl_AES_128_GCM_NI_aes128_gcm_compute_iv(aes_gcm_ctx, iv_len, iv);
-  Hacl_AES_128_GCM_NI_aes128_gcm_encrypt(aes_gcm_ctx, plain_len, out, plain, ad_len, ad);
+  Hacl_AES_128_GCM_NI_aes128_gcm_encrypt(aes_gcm_ctx, plain_len, out, plain, ad_len, ad, iv_len, iv);
   memcpy(cipher, out, plain_len);
   memcpy(tag, out + plain_len, 16);
   KRML_HOST_FREE(out);
@@ -403,8 +402,7 @@ encrypt_aes128_gcm_m32(
   uint8_t *ek = scrut.ek;
   uint64_t *aes_gcm_ctx = (uint64_t *)ek;
   uint8_t* out = (uint8_t*)KRML_HOST_MALLOC(plain_len + 16);
-  Hacl_AES_128_GCM_M32_aes128_gcm_compute_iv(aes_gcm_ctx, iv_len, iv);
-  Hacl_AES_128_GCM_M32_aes128_gcm_encrypt(aes_gcm_ctx, plain_len, out, plain, ad_len, ad);
+  Hacl_AES_128_GCM_M32_aes128_gcm_encrypt(aes_gcm_ctx, plain_len, out, plain, ad_len, ad, iv_len, iv);
   memcpy(cipher, out, plain_len);
   memcpy(tag, out + plain_len, 16);
   KRML_HOST_FREE(out);
@@ -1423,8 +1421,7 @@ decrypt_aes128_gcm_aesni_pclmul(
   uint8_t* in = (uint8_t*)KRML_HOST_MALLOC(cipher_len + 16);
   memcpy(in, cipher, cipher_len);
   memcpy(in + cipher_len, tag, 16);
-  Hacl_AES_128_GCM_NI_aes128_gcm_compute_iv(aes_gcm_ctx, iv_len, iv);
-  bool r = Hacl_AES_128_GCM_NI_aes128_gcm_decrypt(aes_gcm_ctx, cipher_len, dst, in, ad_len, ad);
+  bool r = Hacl_AES_128_GCM_NI_aes128_gcm_decrypt(aes_gcm_ctx, cipher_len, dst, in, ad_len, ad, iv_len, iv);
   KRML_HOST_FREE(in);
   if (r)
   {
@@ -1467,8 +1464,7 @@ decrypt_aes128_gcm_m32(
   uint8_t* in = (uint8_t*)KRML_HOST_MALLOC(cipher_len + 16);
   memcpy(in, cipher, cipher_len);
   memcpy(in + cipher_len, tag, 16);
-  Hacl_AES_128_GCM_M32_aes128_gcm_compute_iv(aes_gcm_ctx, iv_len, iv);
-  bool r = Hacl_AES_128_GCM_M32_aes128_gcm_decrypt(aes_gcm_ctx, cipher_len, dst, in, ad_len, ad);
+  bool r = Hacl_AES_128_GCM_M32_aes128_gcm_decrypt(aes_gcm_ctx, cipher_len, dst, in, ad_len, ad, iv_len, iv);
   KRML_HOST_FREE(in);
   if (r)
   {

@@ -25,29 +25,42 @@
 
 #include "Hacl_AES_128_GCM_NI.h"
 
+void Hacl_AES_128_GCM_NI_aes128_gcm_init(Lib_IntVector_Intrinsics_vec128 *ctx, uint8_t *key)
+{
+  uint8_t gcm_key[16U] = { 0U };
+  uint8_t nonce0[12U] = { 0U };
+  Lib_IntVector_Intrinsics_vec128 *aes_ctx = ctx;
+  Lib_IntVector_Intrinsics_vec128 *gcm_ctx = ctx + (uint32_t)16U;
+  Hacl_AES_128_NI_aes128_init(aes_ctx, key, nonce0);
+  Hacl_AES_128_NI_aes128_key_block(gcm_key, aes_ctx, (uint32_t)0U);
+  Hacl_Gf128_NI_gcm_init(gcm_ctx, gcm_key);
+}
+
 void
-Hacl_AES_128_GCM_NI_aes128_gcm_compute_iv(
+Hacl_AES_128_GCM_NI_aes128_gcm_encrypt(
   Lib_IntVector_Intrinsics_vec128 *ctx,
+  uint32_t len,
+  uint8_t *out,
+  uint8_t *text,
+  uint32_t aad_len,
+  uint8_t *aad,
   uint32_t iv_len,
   uint8_t *iv
 )
 {
-  uint8_t tag_iv0[16U] = { 0U };
+  uint32_t ctr;
   uint8_t tag_mix0[16U] = { 0U };
   uint8_t gcm_key[16U] = { 0U };
   uint8_t tag_iv[16U] = { 0U };
   uint8_t size_iv[16U] = { 0U };
-  uint8_t tag_mix[16U] = { 0U };
+  uint8_t tag_mix1[16U] = { 0U };
   if (iv_len == (uint32_t)12U)
   {
     Lib_IntVector_Intrinsics_vec128 *aes_ctx = ctx;
-    KRML_MAYBE_FOR12(i, (uint32_t)0U, (uint32_t)12U, (uint32_t)1U, tag_iv0[i] = iv[i];);
-    store32_be(tag_iv0 + (uint32_t)12U, (uint32_t)1U);
-    Hacl_AES_128_NI_aes128_set_nonce(aes_ctx, tag_iv0);
-    Hacl_AES_128_NI_aes128_key_block(tag_mix0, aes_ctx);
+    Hacl_AES_128_NI_aes128_set_nonce(aes_ctx, iv);
+    Hacl_AES_128_NI_aes128_key_block(tag_mix0, aes_ctx, (uint32_t)1U);
     ctx[21U] = Lib_IntVector_Intrinsics_vec128_load128_le(tag_mix0);
-    store32_be(tag_iv0 + (uint32_t)12U, (uint32_t)2U);
-    Hacl_AES_128_NI_aes128_set_nonce(aes_ctx, tag_iv0);
+    ctr = (uint32_t)2U;
   }
   else
   {
@@ -63,54 +76,29 @@ Hacl_AES_128_GCM_NI_aes128_gcm_compute_iv(
       size_iv[i] = tag_iv[i] ^ size_iv[i];);
     Hacl_Gf128_NI_ghash(tag_iv, (uint32_t)16U, size_iv, gcm_key);
     Hacl_AES_128_NI_aes128_set_nonce(aes_ctx, tag_iv);
-    Hacl_AES_128_NI_aes128_key_block(tag_mix, aes_ctx);
-    ctx[21U] = Lib_IntVector_Intrinsics_vec128_load128_le(tag_mix);
-    uint8_t *uu____0 = tag_iv + (uint32_t)12U;
     uint32_t u = load32_be(tag_iv + (uint32_t)12U);
-    store32_be(uu____0, u + (uint32_t)1U);
-    Hacl_AES_128_NI_aes128_set_nonce(aes_ctx, tag_iv);
+    uint32_t ctr0 = u;
+    Hacl_AES_128_NI_aes128_key_block(tag_mix1, aes_ctx, ctr0);
+    ctx[21U] = Lib_IntVector_Intrinsics_vec128_load128_le(tag_mix1);
+    ctr = ctr0 + (uint32_t)1U;
   }
-}
-
-void Hacl_AES_128_GCM_NI_aes128_gcm_init(Lib_IntVector_Intrinsics_vec128 *ctx, uint8_t *key)
-{
-  uint8_t gcm_key[16U] = { 0U };
-  uint8_t nonce0[16U] = { 0U };
-  Lib_IntVector_Intrinsics_vec128 *aes_ctx = ctx;
-  Lib_IntVector_Intrinsics_vec128 *gcm_ctx = ctx + (uint32_t)16U;
-  Hacl_AES_128_NI_aes128_init(aes_ctx, key, nonce0);
-  Hacl_AES_128_NI_aes128_key_block(gcm_key, aes_ctx);
-  Hacl_Gf128_NI_gcm_init(gcm_ctx, gcm_key);
-}
-
-void
-Hacl_AES_128_GCM_NI_aes128_gcm_encrypt(
-  Lib_IntVector_Intrinsics_vec128 *ctx,
-  uint32_t len,
-  uint8_t *out,
-  uint8_t *text,
-  uint32_t aad_len,
-  uint8_t *aad
-)
-{
   uint8_t *cip = out;
   Lib_IntVector_Intrinsics_vec128 *aes_ctx = ctx;
   uint32_t blocks64 = len / (uint32_t)64U;
   for (uint32_t i = (uint32_t)0U; i < blocks64; i++)
   {
-    uint32_t ctr = i * (uint32_t)4U;
+    uint32_t ctr1 = ctr + i * (uint32_t)4U;
     uint8_t *ib = text + i * (uint32_t)64U;
     uint8_t *ob = cip + i * (uint32_t)64U;
     KRML_PRE_ALIGN(16) Lib_IntVector_Intrinsics_vec128 st[4U] KRML_POST_ALIGN(16) = { 0U };
     Lib_IntVector_Intrinsics_vec128 *kex = aes_ctx + (uint32_t)1U;
     Lib_IntVector_Intrinsics_vec128 *n = aes_ctx;
-    uint32_t counter = ctr;
+    uint32_t counter = ctr1;
+    uint32_t counter0 = htobe32(counter);
+    uint32_t counter1 = htobe32(counter + (uint32_t)1U);
+    uint32_t counter2 = htobe32(counter + (uint32_t)2U);
+    uint32_t counter3 = htobe32(counter + (uint32_t)3U);
     Lib_IntVector_Intrinsics_vec128 nonce0 = n[0U];
-    uint32_t init_ctr = htobe32(Lib_IntVector_Intrinsics_vec128_extract32(nonce0, (uint32_t)3U));
-    uint32_t counter0 = htobe32(init_ctr + counter);
-    uint32_t counter1 = htobe32(init_ctr + counter + (uint32_t)1U);
-    uint32_t counter2 = htobe32(init_ctr + counter + (uint32_t)2U);
-    uint32_t counter3 = htobe32(init_ctr + counter + (uint32_t)3U);
     st[0U] = Lib_IntVector_Intrinsics_vec128_insert32(nonce0, counter0, (uint32_t)3U);
     st[1U] = Lib_IntVector_Intrinsics_vec128_insert32(nonce0, counter1, (uint32_t)3U);
     st[2U] = Lib_IntVector_Intrinsics_vec128_insert32(nonce0, counter2, (uint32_t)3U);
@@ -156,20 +144,19 @@ Hacl_AES_128_GCM_NI_aes128_gcm_encrypt(
   uint8_t last[64U] = { 0U };
   if (rem > (uint32_t)0U)
   {
-    uint32_t ctr = blocks64 * (uint32_t)4U;
+    uint32_t ctr1 = ctr + blocks64 * (uint32_t)4U;
     uint8_t *ib = text + blocks64 * (uint32_t)64U;
     uint8_t *ob = cip + blocks64 * (uint32_t)64U;
     memcpy(last, ib, rem * sizeof (uint8_t));
     KRML_PRE_ALIGN(16) Lib_IntVector_Intrinsics_vec128 st[4U] KRML_POST_ALIGN(16) = { 0U };
     Lib_IntVector_Intrinsics_vec128 *kex = aes_ctx + (uint32_t)1U;
     Lib_IntVector_Intrinsics_vec128 *n = aes_ctx;
-    uint32_t counter = ctr;
+    uint32_t counter = ctr1;
+    uint32_t counter0 = htobe32(counter);
+    uint32_t counter1 = htobe32(counter + (uint32_t)1U);
+    uint32_t counter2 = htobe32(counter + (uint32_t)2U);
+    uint32_t counter3 = htobe32(counter + (uint32_t)3U);
     Lib_IntVector_Intrinsics_vec128 nonce0 = n[0U];
-    uint32_t init_ctr = htobe32(Lib_IntVector_Intrinsics_vec128_extract32(nonce0, (uint32_t)3U));
-    uint32_t counter0 = htobe32(init_ctr + counter);
-    uint32_t counter1 = htobe32(init_ctr + counter + (uint32_t)1U);
-    uint32_t counter2 = htobe32(init_ctr + counter + (uint32_t)2U);
-    uint32_t counter3 = htobe32(init_ctr + counter + (uint32_t)3U);
     st[0U] = Lib_IntVector_Intrinsics_vec128_insert32(nonce0, counter0, (uint32_t)3U);
     st[1U] = Lib_IntVector_Intrinsics_vec128_insert32(nonce0, counter1, (uint32_t)3U);
     st[2U] = Lib_IntVector_Intrinsics_vec128_insert32(nonce0, counter2, (uint32_t)3U);
@@ -235,7 +222,9 @@ Hacl_AES_128_GCM_NI_aes128_gcm_decrypt(
   uint8_t *out,
   uint8_t *cipher,
   uint32_t aad_len,
-  uint8_t *aad
+  uint8_t *aad,
+  uint32_t iv_len,
+  uint8_t *iv
 )
 {
   uint8_t scratch[18U] = { 0U };
@@ -246,6 +235,40 @@ Hacl_AES_128_GCM_NI_aes128_gcm_decrypt(
   Lib_IntVector_Intrinsics_vec128 *aes_ctx = ctx;
   Lib_IntVector_Intrinsics_vec128 *gcm_ctx = ctx + (uint32_t)16U;
   Lib_IntVector_Intrinsics_vec128 tag_mix = ctx[21U];
+  uint32_t ctr;
+  uint8_t tag_mix10[16U] = { 0U };
+  uint8_t gcm_key[16U] = { 0U };
+  uint8_t tag_iv[16U] = { 0U };
+  uint8_t size_iv[16U] = { 0U };
+  uint8_t tag_mix1[16U] = { 0U };
+  if (iv_len == (uint32_t)12U)
+  {
+    Lib_IntVector_Intrinsics_vec128 *aes_ctx1 = ctx;
+    Hacl_AES_128_NI_aes128_set_nonce(aes_ctx1, iv);
+    Hacl_AES_128_NI_aes128_key_block(tag_mix10, aes_ctx1, (uint32_t)1U);
+    ctx[21U] = Lib_IntVector_Intrinsics_vec128_load128_le(tag_mix10);
+    ctr = (uint32_t)2U;
+  }
+  else
+  {
+    Lib_IntVector_Intrinsics_vec128 *aes_ctx1 = ctx;
+    Lib_IntVector_Intrinsics_vec128 *gcm_ctx1 = ctx + (uint32_t)16U;
+    Lib_IntVector_Intrinsics_vec128_store_be(gcm_key, gcm_ctx1[4U]);
+    Hacl_Gf128_NI_ghash(tag_iv, iv_len, iv, gcm_key);
+    store64_be(size_iv + (uint32_t)8U, (uint64_t)(iv_len * (uint32_t)8U));
+    KRML_MAYBE_FOR16(i,
+      (uint32_t)0U,
+      (uint32_t)16U,
+      (uint32_t)1U,
+      size_iv[i] = tag_iv[i] ^ size_iv[i];);
+    Hacl_Gf128_NI_ghash(tag_iv, (uint32_t)16U, size_iv, gcm_key);
+    Hacl_AES_128_NI_aes128_set_nonce(aes_ctx1, tag_iv);
+    uint32_t u = load32_be(tag_iv + (uint32_t)12U);
+    uint32_t ctr0 = u;
+    Hacl_AES_128_NI_aes128_key_block(tag_mix1, aes_ctx1, ctr0);
+    ctx[21U] = Lib_IntVector_Intrinsics_vec128_load128_le(tag_mix1);
+    ctr = ctr0 + (uint32_t)1U;
+  }
   Hacl_Gf128_NI_gcm_update_padded(gcm_ctx, aad_len, aad);
   Hacl_Gf128_NI_gcm_update_padded(gcm_ctx, len, ciphertext);
   store64_be(text, (uint64_t)(aad_len * (uint32_t)8U));
@@ -267,19 +290,18 @@ Hacl_AES_128_GCM_NI_aes128_gcm_decrypt(
     uint32_t blocks64 = len / (uint32_t)64U;
     for (uint32_t i = (uint32_t)0U; i < blocks64; i++)
     {
-      uint32_t ctr = i * (uint32_t)4U;
+      uint32_t ctr1 = ctr + i * (uint32_t)4U;
       uint8_t *ib = ciphertext + i * (uint32_t)64U;
       uint8_t *ob = out + i * (uint32_t)64U;
       KRML_PRE_ALIGN(16) Lib_IntVector_Intrinsics_vec128 st[4U] KRML_POST_ALIGN(16) = { 0U };
       Lib_IntVector_Intrinsics_vec128 *kex = aes_ctx + (uint32_t)1U;
       Lib_IntVector_Intrinsics_vec128 *n = aes_ctx;
-      uint32_t counter = ctr;
+      uint32_t counter = ctr1;
+      uint32_t counter0 = htobe32(counter);
+      uint32_t counter1 = htobe32(counter + (uint32_t)1U);
+      uint32_t counter2 = htobe32(counter + (uint32_t)2U);
+      uint32_t counter3 = htobe32(counter + (uint32_t)3U);
       Lib_IntVector_Intrinsics_vec128 nonce0 = n[0U];
-      uint32_t init_ctr = htobe32(Lib_IntVector_Intrinsics_vec128_extract32(nonce0, (uint32_t)3U));
-      uint32_t counter0 = htobe32(init_ctr + counter);
-      uint32_t counter1 = htobe32(init_ctr + counter + (uint32_t)1U);
-      uint32_t counter2 = htobe32(init_ctr + counter + (uint32_t)2U);
-      uint32_t counter3 = htobe32(init_ctr + counter + (uint32_t)3U);
       st[0U] = Lib_IntVector_Intrinsics_vec128_insert32(nonce0, counter0, (uint32_t)3U);
       st[1U] = Lib_IntVector_Intrinsics_vec128_insert32(nonce0, counter1, (uint32_t)3U);
       st[2U] = Lib_IntVector_Intrinsics_vec128_insert32(nonce0, counter2, (uint32_t)3U);
@@ -325,20 +347,19 @@ Hacl_AES_128_GCM_NI_aes128_gcm_decrypt(
     uint8_t last[64U] = { 0U };
     if (rem > (uint32_t)0U)
     {
-      uint32_t ctr = blocks64 * (uint32_t)4U;
+      uint32_t ctr1 = ctr + blocks64 * (uint32_t)4U;
       uint8_t *ib = ciphertext + blocks64 * (uint32_t)64U;
       uint8_t *ob = out + blocks64 * (uint32_t)64U;
       memcpy(last, ib, rem * sizeof (uint8_t));
       KRML_PRE_ALIGN(16) Lib_IntVector_Intrinsics_vec128 st[4U] KRML_POST_ALIGN(16) = { 0U };
       Lib_IntVector_Intrinsics_vec128 *kex = aes_ctx + (uint32_t)1U;
       Lib_IntVector_Intrinsics_vec128 *n = aes_ctx;
-      uint32_t counter = ctr;
+      uint32_t counter = ctr1;
+      uint32_t counter0 = htobe32(counter);
+      uint32_t counter1 = htobe32(counter + (uint32_t)1U);
+      uint32_t counter2 = htobe32(counter + (uint32_t)2U);
+      uint32_t counter3 = htobe32(counter + (uint32_t)3U);
       Lib_IntVector_Intrinsics_vec128 nonce0 = n[0U];
-      uint32_t init_ctr = htobe32(Lib_IntVector_Intrinsics_vec128_extract32(nonce0, (uint32_t)3U));
-      uint32_t counter0 = htobe32(init_ctr + counter);
-      uint32_t counter1 = htobe32(init_ctr + counter + (uint32_t)1U);
-      uint32_t counter2 = htobe32(init_ctr + counter + (uint32_t)2U);
-      uint32_t counter3 = htobe32(init_ctr + counter + (uint32_t)3U);
       st[0U] = Lib_IntVector_Intrinsics_vec128_insert32(nonce0, counter0, (uint32_t)3U);
       st[1U] = Lib_IntVector_Intrinsics_vec128_insert32(nonce0, counter1, (uint32_t)3U);
       st[2U] = Lib_IntVector_Intrinsics_vec128_insert32(nonce0, counter2, (uint32_t)3U);

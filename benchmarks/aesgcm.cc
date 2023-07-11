@@ -116,13 +116,11 @@ HACL_AES_128_GCM_NI_encrypt(benchmark::State& state)
   for (auto _ : state) {
     Lib_IntVector_Intrinsics_vec128 *ctx = (Lib_IntVector_Intrinsics_vec128 *)KRML_HOST_CALLOC((uint32_t)352U, sizeof (uint8_t));
     Hacl_AES_128_GCM_NI_aes128_gcm_init(ctx, key.data());
-    Hacl_AES_128_GCM_NI_aes128_gcm_compute_iv(ctx, nonce.size(), nonce.data());
-    Hacl_AES_128_GCM_NI_aes128_gcm_encrypt(ctx, INPUT_LEN, ciphertext.data(), plaintext.data(), aad.size(), aad.data());
+    Hacl_AES_128_GCM_NI_aes128_gcm_encrypt(ctx, INPUT_LEN, ciphertext.data(), plaintext.data(), aad.size(), aad.data(), nonce.size(), nonce.data());
     KRML_HOST_FREE(ctx);
-    if (ciphertext != expected_ciphertext) {
-      state.SkipWithError("Wrong ciphertext");
-      break;
-    }
+  }
+  if (ciphertext != expected_ciphertext) {
+    state.SkipWithError("Wrong ciphertext");
   }
 }
 
@@ -135,13 +133,11 @@ HACL_AES_128_GCM_M32_encrypt(benchmark::State& state)
   for (auto _ : state) {
     uint64_t *ctx = (uint64_t *)KRML_HOST_CALLOC((uint32_t)3168U, sizeof (uint8_t));
     Hacl_AES_128_GCM_M32_aes128_gcm_init(ctx, key.data());
-    Hacl_AES_128_GCM_M32_aes128_gcm_compute_iv(ctx, nonce.size(), nonce.data());
-    Hacl_AES_128_GCM_M32_aes128_gcm_encrypt(ctx, INPUT_LEN, ciphertext.data(), plaintext.data(), aad.size(), aad.data());
+    Hacl_AES_128_GCM_M32_aes128_gcm_encrypt(ctx, INPUT_LEN, ciphertext.data(), plaintext.data(), aad.size(), aad.data(), nonce.size(), nonce.data());
     KRML_HOST_FREE(ctx);
-    if (ciphertext != expected_ciphertext) {
-      state.SkipWithError("Wrong ciphertext");
-      break;
-    }
+  }
+  if (ciphertext != expected_ciphertext) {
+    state.SkipWithError("Wrong ciphertext");
   }
 }
 
@@ -208,10 +204,9 @@ OpenSSL_aes_128_gcm_encrypt(benchmark::State& state)
       break;
     }
     EVP_CIPHER_CTX_free(ctx);
-    if (ciphertext != expected_ciphertext) {
-      state.SkipWithError("Wrong ciphertext");
-      break;
-    }
+  }
+  if (ciphertext != expected_ciphertext) {
+    state.SkipWithError("Wrong ciphertext");
   }
 }
 

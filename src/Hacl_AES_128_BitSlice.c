@@ -326,31 +326,18 @@ void Hacl_Impl_AES_CoreBitSlice_load_key1(uint64_t *out, uint8_t *k)
 
 void Hacl_Impl_AES_CoreBitSlice_load_nonce(uint64_t *out, uint8_t *nonce1)
 {
-  Hacl_Impl_AES_CoreBitSlice_load_key1(out, nonce1);
-}
-
-static uint32_t restore_counter(uint64_t *n)
-{
-  uint64_t
-  ctr =
-    ((((((n[0U] >> (uint32_t)60U | n[1U] >> (uint32_t)60U << (uint32_t)8U)
-    | n[2U] >> (uint32_t)60U << (uint32_t)16U)
-    | n[3U] >> (uint32_t)60U << (uint32_t)24U)
-    | n[4U] >> (uint32_t)60U << (uint32_t)32U)
-    | n[5U] >> (uint32_t)60U << (uint32_t)40U)
-    | n[6U] >> (uint32_t)60U << (uint32_t)48U)
-    | n[7U] >> (uint32_t)60U << (uint32_t)56U;
-  return (uint32_t)Lib_Transposition64x8_transpose_bits64(ctr);
+  uint8_t nb[16U] = { 0U };
+  memcpy(nb, nonce1, (uint32_t)12U * sizeof (uint8_t));
+  Hacl_Impl_AES_CoreBitSlice_load_key1(out, nb);
 }
 
 void Hacl_Impl_AES_CoreBitSlice_load_state(uint64_t *out, uint64_t *nonce1, uint32_t counter)
 {
   uint8_t ctr[16U] = { 0U };
-  uint32_t init_ctr = htobe32(restore_counter(nonce1));
-  store32_be(ctr, init_ctr + counter);
-  store32_be(ctr + (uint32_t)4U, init_ctr + counter + (uint32_t)1U);
-  store32_be(ctr + (uint32_t)8U, init_ctr + counter + (uint32_t)2U);
-  store32_be(ctr + (uint32_t)12U, init_ctr + counter + (uint32_t)3U);
+  store32_be(ctr, counter);
+  store32_be(ctr + (uint32_t)4U, counter + (uint32_t)1U);
+  store32_be(ctr + (uint32_t)8U, counter + (uint32_t)2U);
+  store32_be(ctr + (uint32_t)12U, counter + (uint32_t)3U);
   load_block0(out, ctr);
   KRML_MAYBE_FOR8(i,
     (uint32_t)0U,
@@ -360,8 +347,7 @@ void Hacl_Impl_AES_CoreBitSlice_load_state(uint64_t *out, uint64_t *nonce1, uint
     uint64_t
     u1 = ((u << (uint32_t)12U | u << (uint32_t)24U) | u << (uint32_t)36U) | u << (uint32_t)48U;
     uint64_t u2 = u1 & (uint64_t)0xf000f000f000f000U;
-    uint64_t n = nonce1[i] & (uint64_t)0x0fff0fff0fff0fffU;
-    out[i] = u2 ^ n;);
+    out[i] = u2 ^ nonce1[i];);
 }
 
 void Hacl_Impl_AES_CoreBitSlice_xor_state_key1(uint64_t *st, uint64_t *ost)
@@ -534,13 +520,14 @@ Hacl_Impl_AES_Generic_aes128_ctr_bitslice(
   uint32_t len,
   uint8_t *out,
   uint8_t *inp,
-  uint64_t *ctx
+  uint64_t *ctx,
+  uint32_t counter
 )
 {
   uint32_t blocks64 = len / (uint32_t)64U;
   for (uint32_t i = (uint32_t)0U; i < blocks64; i++)
   {
-    uint32_t ctr = i * (uint32_t)4U;
+    uint32_t ctr = counter + i * (uint32_t)4U;
     uint8_t *ib = inp + i * (uint32_t)64U;
     uint8_t *ob = out + i * (uint32_t)64U;
     uint64_t st[8U] = { 0U };
@@ -565,7 +552,7 @@ Hacl_Impl_AES_Generic_aes128_ctr_bitslice(
   uint8_t last[64U] = { 0U };
   if (rem > (uint32_t)0U)
   {
-    uint32_t ctr = blocks64 * (uint32_t)4U;
+    uint32_t ctr = counter + blocks64 * (uint32_t)4U;
     uint8_t *ib = inp + blocks64 * (uint32_t)64U;
     uint8_t *ob = out + blocks64 * (uint32_t)64U;
     memcpy(last, ib, rem * sizeof (uint8_t));
@@ -595,13 +582,14 @@ Hacl_Impl_AES_Generic_aes256_ctr_bitslice(
   uint32_t len,
   uint8_t *out,
   uint8_t *inp,
-  uint64_t *ctx
+  uint64_t *ctx,
+  uint32_t counter
 )
 {
   uint32_t blocks64 = len / (uint32_t)64U;
   for (uint32_t i = (uint32_t)0U; i < blocks64; i++)
   {
-    uint32_t ctr = i * (uint32_t)4U;
+    uint32_t ctr = counter + i * (uint32_t)4U;
     uint8_t *ib = inp + i * (uint32_t)64U;
     uint8_t *ob = out + i * (uint32_t)64U;
     uint64_t st[8U] = { 0U };
@@ -626,7 +614,7 @@ Hacl_Impl_AES_Generic_aes256_ctr_bitslice(
   uint8_t last[64U] = { 0U };
   if (rem > (uint32_t)0U)
   {
-    uint32_t ctr = blocks64 * (uint32_t)4U;
+    uint32_t ctr = counter + blocks64 * (uint32_t)4U;
     uint8_t *ib = inp + blocks64 * (uint32_t)64U;
     uint8_t *ob = out + blocks64 * (uint32_t)64U;
     memcpy(last, ib, rem * sizeof (uint8_t));
@@ -796,12 +784,12 @@ void Hacl_AES_128_BitSlice_aes128_set_nonce(uint64_t *ctx, uint8_t *nonce)
   Hacl_Impl_AES_CoreBitSlice_load_nonce(n, nonce);
 }
 
-void Hacl_AES_128_BitSlice_aes128_key_block(uint8_t *kb, uint64_t *ctx)
+void Hacl_AES_128_BitSlice_aes128_key_block(uint8_t *kb, uint64_t *ctx, uint32_t counter)
 {
   uint64_t *kex = ctx + (uint32_t)8U;
   uint64_t *n = ctx;
   uint64_t st[8U] = { 0U };
-  Hacl_Impl_AES_CoreBitSlice_load_state(st, n, (uint32_t)0U);
+  Hacl_Impl_AES_CoreBitSlice_load_state(st, n, counter);
   uint32_t klen = (uint32_t)8U;
   uint64_t *k0 = kex;
   uint64_t *kr = kex + klen;
@@ -823,7 +811,8 @@ Hacl_AES_128_BitSlice_aes128_ctr_encrypt(
   uint8_t *out,
   uint8_t *inp,
   uint8_t *k,
-  uint8_t *n
+  uint8_t *n,
+  uint32_t c
 )
 {
   uint64_t ctx[96U] = { 0U };
@@ -962,7 +951,7 @@ Hacl_AES_128_BitSlice_aes128_ctr_encrypt(
     next9[i] = n5;);
   Hacl_Impl_AES_CoreBitSlice_key_expansion_step(next9, prev9);
   Hacl_Impl_AES_CoreBitSlice_load_nonce(n1, n);
-  Hacl_Impl_AES_Generic_aes128_ctr_bitslice(len, out, inp, ctx);
+  Hacl_Impl_AES_Generic_aes128_ctr_bitslice(len, out, inp, ctx, c);
 }
 
 inline void
@@ -971,7 +960,8 @@ Hacl_AES_128_BitSlice_aes128_ctr_decrypt(
   uint8_t *out,
   uint8_t *inp,
   uint8_t *k,
-  uint8_t *n
+  uint8_t *n,
+  uint32_t c
 )
 {
   uint64_t ctx[96U] = { 0U };
@@ -1110,6 +1100,6 @@ Hacl_AES_128_BitSlice_aes128_ctr_decrypt(
     next9[i] = n5;);
   Hacl_Impl_AES_CoreBitSlice_key_expansion_step(next9, prev9);
   Hacl_Impl_AES_CoreBitSlice_load_nonce(n1, n);
-  Hacl_Impl_AES_Generic_aes128_ctr_bitslice(len, out, inp, ctx);
+  Hacl_Impl_AES_Generic_aes128_ctr_bitslice(len, out, inp, ctx, c);
 }
 
