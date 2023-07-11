@@ -593,7 +593,7 @@ static inline Lib_IntVector_Intrinsics_vec128 Lib_IntVector_Intrinsics_vec128_lo
 #define Lib_IntVector_Intrinsics_vec128_store64_be(x0, x1)	\
   (vst1q_u32((uint32_t*)(x0),(vreinterpretq_u32_u8(vrev64q_u8(vreinterpretq_u8_u32(x1))))))
 
-static inline Lib_IntVector_Intrinsics_vec128 Lib_IntVector_Intrinsics_vec128_store_be(uint8_t* x0, Lib_IntVector_Intrinsics_vec128 x1){
+static inline void Lib_IntVector_Intrinsics_vec128_store_be(uint8_t* x0, Lib_IntVector_Intrinsics_vec128 x1){
     uint64x2_t l = (uint64x2_t)vrev64q_u8((uint8x16_t)x1);
     vst1q_u8(x0, (uint8x16_t)vextq_u64(l, l, 1));
 }
