@@ -299,17 +299,24 @@ if(TOOLCHAIN_CAN_COMPILE_AESNI_PCLMUL)
         set(HACL_AESNI_PCLMUL_O ON)
         add_library(hacl_aesni_pclmul OBJECT ${SOURCES_aesni_pclmul})
         target_include_directories(hacl_aesni_pclmul PRIVATE)
-        if(MSVC)
-        else()
+        if(CMAKE_SYSTEM_PROCESSOR MATCHES "i386|i586|i686|i86pc|ia32|x86_64|amd64|AMD64")
+            if(MSVC)
+            # Nothing to do here. MSVC has it covered
+            else()
+                target_compile_options(hacl_aesni_pclmul PRIVATE
+                    -msse2
+                    -msse3
+                    -msse4.1
+                    -msse4.2
+                    -maes
+                    -mpclmul
+                )
+            endif(MSVC)
+        elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|arm64v8")
             target_compile_options(hacl_aesni_pclmul PRIVATE
-                -msse2
-                -msse3
-                -msse4.1
-                -msse4.2
-                -maes
-                -mpclmul
+                -march=armv8-a+crypto
             )
-        endif(MSVC)
+        endif()
     endif()
 endif()
 
