@@ -462,6 +462,8 @@ typedef __m256i Lib_IntVector_Intrinsics_vec256;
 
 typedef uint32x4_t Lib_IntVector_Intrinsics_vec128;
 
+#if defined(__ARM_FEATURE_AES)
+
 #define Lib_IntVector_Intrinsics_ni_aes_enc(x0, x1) \
   ((uint32x4_t)(vaesmcq_u8(vaeseq_u8((uint8x16_t)x0, (uint8x16_t){})) ^ (uint8x16_t)x1))
 
@@ -481,6 +483,8 @@ static inline Lib_IntVector_Intrinsics_vec128 Lib_IntVector_Intrinsics_ni_aes_ke
 #define Lib_IntVector_Intrinsics_ni_clmul(x0, x1, x2)		\
   ((x2) == 0x11? (uint32x4_t)vmull_high_p64((poly64x2_t)x0, (poly64x2_t)x1)  : \
                 (uint32x4_t)vmull_p64(vgetq_lane_u64((uint64x2_t)x0,(x2)&1), vgetq_lane_u64((uint64x2_t)x1,(x2)>>4)))
+
+#endif
 
 #define Lib_IntVector_Intrinsics_vec128_xor(x0, x1) \
   (veorq_u32(x0,x1))
