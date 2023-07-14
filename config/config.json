@@ -6,6 +6,9 @@
     "vale_include_paths": [
         "vale/include"
     ],
+    "cpu_features_include_paths": [
+        "cpu-features/include"
+    ],
     "hacl_sources": {
         "nacl": [
             {

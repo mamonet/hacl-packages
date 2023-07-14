@@ -255,13 +255,6 @@ set(INCLUDES
 	${PROJECT_SOURCE_DIR}/include/EverCrypt_Chacha20Poly1305.h
 	${PROJECT_SOURCE_DIR}/include/EverCrypt_Poly1305.h
 	${PROJECT_SOURCE_DIR}/include/EverCrypt_AEAD.h
-	${PROJECT_SOURCE_DIR}/include/Hacl_Lib.h
-	${PROJECT_SOURCE_DIR}/include/Hacl_Gf128_PreComp.h
-	${PROJECT_SOURCE_DIR}/include/Hacl_AES_128_BitSlice.h
-	${PROJECT_SOURCE_DIR}/include/Hacl_AES_128_GCM_M32.h
-	${PROJECT_SOURCE_DIR}/include/Hacl_Gf128_NI.h
-	${PROJECT_SOURCE_DIR}/include/Hacl_AES_128_NI.h
-	${PROJECT_SOURCE_DIR}/include/Hacl_AES_128_GCM_NI.h
 )
 set(PUBLIC_INCLUDES
 	${PROJECT_SOURCE_DIR}/include/Hacl_NaCl.h
@@ -376,7 +369,8 @@ set(PUBLIC_INCLUDES
 	${PROJECT_SOURCE_DIR}/include/EverCrypt_Chacha20Poly1305.h
 	${PROJECT_SOURCE_DIR}/include/EverCrypt_Poly1305.h
 	${PROJECT_SOURCE_DIR}/include/EverCrypt_AEAD.h
-	${PROJECT_SOURCE_DIR}/include/Hacl_Lib.h
+	${PROJECT_SOURCE_DIR}/include/internal/Hacl_Lib.h
+	${PROJECT_SOURCE_DIR}/include/internal/Hacl_AES_128_BitSlice.h
 	${PROJECT_SOURCE_DIR}/include/Hacl_Gf128_PreComp.h
 	${PROJECT_SOURCE_DIR}/include/Hacl_AES_128_BitSlice.h
 	${PROJECT_SOURCE_DIR}/include/Hacl_AES_128_GCM_M32.h
@@ -414,6 +408,7 @@ set(INCLUDE_PATHS
 	${PROJECT_SOURCE_DIR}/karamel/include
 	${PROJECT_SOURCE_DIR}/karamel/krmllib/dist/minimal
 	${PROJECT_SOURCE_DIR}/vale/include
+	${PROJECT_SOURCE_DIR}/cpu-features/include
 )
 set(TEST_SOURCES
 	${PROJECT_SOURCE_DIR}/tests/detection.cc

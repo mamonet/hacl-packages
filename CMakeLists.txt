@@ -288,7 +288,6 @@ endif()
 if(TOOLCHAIN_CAN_COMPILE_AESNI_PCLMUL)
     add_compile_options(
         -DHACL_CAN_COMPILE_VEC128
-        -DHACL_CAN_COMPILE_VEC256
     )
     set(HACL_CAN_COMPILE_AESNI_PCLMUL 1)
 
@@ -300,6 +299,10 @@ if(TOOLCHAIN_CAN_COMPILE_AESNI_PCLMUL)
         add_library(hacl_aesni_pclmul OBJECT ${SOURCES_aesni_pclmul})
         target_include_directories(hacl_aesni_pclmul PRIVATE)
         if(CMAKE_SYSTEM_PROCESSOR MATCHES "i386|i586|i686|i86pc|ia32|x86_64|amd64|AMD64")
+            add_compile_options(
+                -DHACL_CAN_COMPILE_VEC256
+            )
+
             if(MSVC)
             # Nothing to do here. MSVC has it covered
             else()
@@ -444,12 +447,13 @@ install(DIRECTORY vale/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vale
 # # Install config.h
 install(FILES build/config.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hacl)
 
-# The CPU detection is used for testing and benchmarking
-if(ENABLE_TESTS OR ENABLE_BENCHMARKS)
-    # CPU feature detection for tests
-    add_library(hacl_cpu_features OBJECT ${PROJECT_SOURCE_DIR}/cpu-features/src/cpu-features.c)
-    target_include_directories(hacl_cpu_features PUBLIC ${PROJECT_SOURCE_DIR}/cpu-features/include)
-endif(ENABLE_TESTS OR ENABLE_BENCHMARKS)
+# CPU feature detection for tests
+add_library(hacl_cpu_features OBJECT ${PROJECT_SOURCE_DIR}/cpu-features/src/cpu-features.c)
+target_include_directories(hacl_cpu_features PUBLIC ${PROJECT_SOURCE_DIR}/cpu-features/include)
+add_dependencies(hacl hacl_cpu_features)
+target_link_libraries(hacl PRIVATE $<TARGET_OBJECTS:hacl_cpu_features>)
+add_dependencies(hacl_static hacl_cpu_features)
+target_link_libraries(hacl_static PRIVATE $<TARGET_OBJECTS:hacl_cpu_features>)
 
 # Add ecckiila for benchmarks
 if(ENABLE_BENCHMARKS)
@@ -515,11 +519,10 @@ if(ENABLE_TESTS)
             target_compile_options(${TEST_NAME} PRIVATE /std:c++20)
         endif(MSVC)
 
-        add_dependencies(${TEST_NAME} hacl hacl_cpu_features)
+        add_dependencies(${TEST_NAME} hacl)
         target_link_libraries(${TEST_NAME} PRIVATE
             gtest_main
             hacl_static
-            hacl_cpu_features
             nlohmann_json::nlohmann_json
         )
         target_include_directories(${TEST_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/cpu-features/include)
@@ -592,14 +595,13 @@ if(ENABLE_BENCHMARKS)
             target_compile_options(${BENCH_NAME} PRIVATE /std:c++20)
         endif(NOT MSVC)
 
-        add_dependencies(${BENCH_NAME} hacl hacl_cpu_features)
+        add_dependencies(${BENCH_NAME} hacl)
         target_link_libraries(${BENCH_NAME} PRIVATE
             hacl_static
             ecckiila
             blake2
             digestif
             bearssl
-            hacl_cpu_features
             benchmark::benchmark
         )
     endforeach()

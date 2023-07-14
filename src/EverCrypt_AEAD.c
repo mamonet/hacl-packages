@@ -32,6 +32,7 @@
 #include "Hacl_AES_128_GCM_M32.h"
 #include "internal/Hacl_Spec.h"
 #include "config.h"
+#include "hacl-cpu-features.h"
 
 /**
 Both encryption and decryption require a state that holds the key.
@@ -101,12 +102,12 @@ create_in_chacha20_poly1305(EverCrypt_AEAD_state_s **dst, uint8_t *k)
 static EverCrypt_Error_error_code
 create_in_aes128_gcm(EverCrypt_AEAD_state_s **dst, uint8_t *k)
 {
+  #if HACL_CAN_COMPILE_VALE
   bool has_aesni = EverCrypt_AutoConfig2_has_aesni();
   bool has_pclmulqdq = EverCrypt_AutoConfig2_has_pclmulqdq();
   bool has_avx = EverCrypt_AutoConfig2_has_avx();
   bool has_sse = EverCrypt_AutoConfig2_has_sse();
   bool has_movbe = EverCrypt_AutoConfig2_has_movbe();
-  #if HACL_CAN_COMPILE_VALE
   if (has_aesni && has_pclmulqdq && has_avx && has_sse && has_movbe)
   {
     uint8_t *ek = (uint8_t *)KRML_HOST_CALLOC((uint32_t)480U, sizeof (uint8_t));
@@ -122,7 +123,7 @@ create_in_aes128_gcm(EverCrypt_AEAD_state_s **dst, uint8_t *k)
   }
   else
   #elif HACL_CAN_COMPILE_AESNI_PCLMUL
-  if (has_aesni && has_pclmulqdq && has_sse)
+  if (hacl_aesgcm_support() != 0)
   {
     uint8_t *ek = (uint8_t *)KRML_HOST_CALLOC((uint32_t)352U, sizeof (uint8_t));
     Lib_IntVector_Intrinsics_vec128 *aes_gcm_ctx = (Lib_IntVector_Intrinsics_vec128 *)ek;
